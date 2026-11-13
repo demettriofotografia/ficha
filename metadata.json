@@ -1,0 +1,6 @@
+{
+  "name": "Oeste Sombrio — Ficha",
+  "description": "Ficha interativa de personagem para o RPG Oeste Sombrio com salvamento no Firebase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

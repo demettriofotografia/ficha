@@ -1,0 +1,189 @@
+{
+  "entities": {
+    "PericiasMap": {
+      "title": "PericiasMap",
+      "description": "Mapa de dados selecionados (d4 a d12 ou vazio) para as 19 pericias da ficha.",
+      "type": "object",
+      "properties": {
+        "acrobacia": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "atletismo": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "blefe": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "cienciaEstr": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "conhecBio": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "conhecNatur": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "cultura": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "diplomacia": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "empatia": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "engenharia": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "furtividade": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "intimidacao": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "medicina": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "misticismo": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "montaria": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "percepcao": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "prestidigitacao": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "profissao": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 },
+        "sobrevivencia": { "type": "string", "enum": ["", "d4", "d6", "d8", "d10", "d12"], "maxLength": 3 }
+      },
+      "required": [
+        "acrobacia",
+        "atletismo",
+        "blefe",
+        "cienciaEstr",
+        "conhecBio",
+        "conhecNatur",
+        "cultura",
+        "diplomacia",
+        "empatia",
+        "engenharia",
+        "furtividade",
+        "intimidacao",
+        "medicina",
+        "misticismo",
+        "montaria",
+        "percepcao",
+        "prestidigitacao",
+        "profissao",
+        "sobrevivencia"
+      ]
+    },
+    "CharacterSheet": {
+      "title": "CharacterSheet",
+      "description": "Ficha de personagem completa do RPG Oeste Sombrio pertencente a um usuario autenticado.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "UID do proprietario da ficha (request.auth.uid).",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "nome": {
+          "type": "string",
+          "description": "Nome do personagem.",
+          "maxLength": 100
+        },
+        "nivel": {
+          "type": "string",
+          "description": "Nivel do personagem.",
+          "maxLength": 30
+        },
+        "experienciaAtual": {
+          "type": "string",
+          "description": "Experiencia atual do personagem.",
+          "maxLength": 30
+        },
+        "experienciaTotal": {
+          "type": "string",
+          "description": "Experiencia total do personagem.",
+          "maxLength": 30
+        },
+        "defesa": {
+          "type": "string",
+          "description": "Valor de defesa do personagem.",
+          "maxLength": 30
+        },
+        "iniciativa": {
+          "type": "string",
+          "description": "Valor de iniciativa do personagem.",
+          "maxLength": 30
+        },
+        "fadiga": {
+          "type": "integer",
+          "description": "Nivel de fadiga de 0 a 10 (10 circulos)."
+        },
+        "tambor": {
+          "type": "string",
+          "description": "Estado dos 6 compartimentos do tambor de revolver (0=vazio, 1=carregado).",
+          "minLength": 6,
+          "maxLength": 6,
+          "pattern": "^[01]{6}$"
+        },
+        "pericias": {
+          "type": "object",
+          "$ref": "#/entities/PericiasMap",
+          "description": "Dados selecionados para as 19 pericias."
+        },
+        "protecao": {
+          "type": "string",
+          "description": "Valor ou descricao de protecao.",
+          "maxLength": 60
+        },
+        "armaCurtaDado": {
+          "type": "string",
+          "enum": ["", "d4", "d6", "d8", "d10", "d12"],
+          "maxLength": 3
+        },
+        "armaCurtaTexto": {
+          "type": "string",
+          "description": "Nome e anotacoes da arma curta.",
+          "maxLength": 120
+        },
+        "armaLongaDado": {
+          "type": "string",
+          "enum": ["", "d4", "d6", "d8", "d10", "d12"],
+          "maxLength": 3
+        },
+        "armaLongaTexto": {
+          "type": "string",
+          "description": "Nome e anotacoes da arma longa.",
+          "maxLength": 120
+        },
+        "corpoACorpoDado": {
+          "type": "string",
+          "enum": ["", "d4", "d6", "d8", "d10", "d12"],
+          "maxLength": 3
+        },
+        "corpoACorpoTexto": {
+          "type": "string",
+          "description": "Nome e anotacoes de combate corpo a corpo.",
+          "maxLength": 120
+        },
+        "equipamentos": {
+          "type": "string",
+          "description": "Lista de equipamentos do personagem.",
+          "maxLength": 4000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp do servidor na criacao."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp do servidor na ultima atualizacao."
+        }
+      },
+      "required": [
+        "ownerId",
+        "nome",
+        "nivel",
+        "experienciaAtual",
+        "experienciaTotal",
+        "defesa",
+        "iniciativa",
+        "fadiga",
+        "tambor",
+        "pericias",
+        "protecao",
+        "armaCurtaDado",
+        "armaCurtaTexto",
+        "armaLongaDado",
+        "armaLongaTexto",
+        "corpoACorpoDado",
+        "corpoACorpoTexto",
+        "equipamentos",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/characters/{characterId}": {
+      "schema": { "$ref": "#/entities/CharacterSheet" },
+      "description": "Colecao privada de fichas de personagens Oeste Sombrio por usuario."
+    }
+  }
+}

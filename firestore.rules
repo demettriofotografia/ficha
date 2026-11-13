@@ -1,0 +1,153 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened Global Helpers
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isValidDie(val) {
+      return val is string && val.size() <= 3 && val in ['', 'd4', 'd6', 'd8', 'd10', 'd12'];
+    }
+
+    function isValidPericias(p) {
+      return p is map
+        && p.keys().hasAll([
+          'acrobacia', 'atletismo', 'blefe', 'cienciaEstr', 'conhecBio',
+          'conhecNatur', 'cultura', 'diplomacia', 'empatia', 'engenharia',
+          'furtividade', 'intimidacao', 'medicina', 'misticismo', 'montaria',
+          'percepcao', 'prestidigitacao', 'profissao', 'sobrevivencia'
+        ])
+        && p.keys().hasOnly([
+          'acrobacia', 'atletismo', 'blefe', 'cienciaEstr', 'conhecBio',
+          'conhecNatur', 'cultura', 'diplomacia', 'empatia', 'engenharia',
+          'furtividade', 'intimidacao', 'medicina', 'misticismo', 'montaria',
+          'percepcao', 'prestidigitacao', 'profissao', 'sobrevivencia'
+        ])
+        && isValidDie(p.acrobacia)
+        && isValidDie(p.atletismo)
+        && isValidDie(p.blefe)
+        && isValidDie(p.cienciaEstr)
+        && isValidDie(p.conhecBio)
+        && isValidDie(p.conhecNatur)
+        && isValidDie(p.cultura)
+        && isValidDie(p.diplomacia)
+        && isValidDie(p.empatia)
+        && isValidDie(p.engenharia)
+        && isValidDie(p.furtividade)
+        && isValidDie(p.intimidacao)
+        && isValidDie(p.medicina)
+        && isValidDie(p.misticismo)
+        && isValidDie(p.montaria)
+        && isValidDie(p.percepcao)
+        && isValidDie(p.prestidigitacao)
+        && isValidDie(p.profissao)
+        && isValidDie(p.sobrevivencia);
+    }
+
+    function isValidCharacterSheet(data) {
+      return data.keys().hasAll([
+          'ownerId', 'nome', 'nivel', 'experienciaAtual', 'experienciaTotal',
+          'defesa', 'iniciativa', 'fadiga', 'tambor', 'pericias',
+          'protecao', 'armaCurtaDado', 'armaCurtaTexto', 'armaLongaDado',
+          'armaLongaTexto', 'corpoACorpoDado', 'corpoACorpoTexto',
+          'equipamentos', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId', 'nome', 'nivel', 'experienciaAtual', 'experienciaTotal',
+          'defesa', 'iniciativa', 'fadiga', 'tambor', 'pericias',
+          'protecao', 'armaCurtaDado', 'armaCurtaTexto', 'armaLongaDado',
+          'armaLongaTexto', 'corpoACorpoDado', 'corpoACorpoTexto',
+          'equipamentos', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && data.nome is string && data.nome.size() <= 100
+        && data.nivel is string && data.nivel.size() <= 30
+        && data.experienciaAtual is string && data.experienciaAtual.size() <= 30
+        && data.experienciaTotal is string && data.experienciaTotal.size() <= 30
+        && data.defesa is string && data.defesa.size() <= 30
+        && data.iniciativa is string && data.iniciativa.size() <= 30
+        && data.fadiga is int && data.fadiga >= 0 && data.fadiga <= 10
+        && data.tambor is string && data.tambor.size() == 6 && data.tambor.matches('^[01]{6}$')
+        && isValidPericias(data.pericias)
+        && data.protecao is string && data.protecao.size() <= 60
+        && isValidDie(data.armaCurtaDado)
+        && data.armaCurtaTexto is string && data.armaCurtaTexto.size() <= 120
+        && isValidDie(data.armaLongaDado)
+        && data.armaLongaTexto is string && data.armaLongaTexto.size() <= 120
+        && isValidDie(data.corpoACorpoDado)
+        && data.corpoACorpoTexto is string && data.corpoACorpoTexto.size() <= 120
+        && data.equipamentos is string && data.equipamentos.size() <= 4000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isOwnerUpdateBase() {
+      return existing().ownerId == request.auth.uid
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time;
+    }
+
+    match /characters/{characterId} {
+      allow get: if isSignedIn() && isValidId(characterId) && resource != null && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+
+      allow create: if isSignedIn()
+        && isValidId(characterId)
+        && isValidCharacterSheet(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isSignedIn()
+        && isValidId(characterId)
+        && isValidCharacterSheet(incoming())
+        && isOwnerUpdateBase()
+        && (
+          // Action 1: Update character header, stats, fatigue, or cylinder
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'nome', 'nivel', 'experienciaAtual', 'experienciaTotal',
+            'defesa', 'iniciativa', 'fadiga', 'tambor', 'updatedAt'
+          ]) ||
+          // Action 2: Update skills (pericias)
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'pericias', 'updatedAt'
+          ]) ||
+          // Action 3: Update combat & equipment
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'protecao', 'armaCurtaDado', 'armaCurtaTexto', 'armaLongaDado',
+            'armaLongaTexto', 'corpoACorpoDado', 'corpoACorpoTexto',
+            'equipamentos', 'updatedAt'
+          ]) ||
+          // Action 4: Full sheet sync
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'nome', 'nivel', 'experienciaAtual', 'experienciaTotal',
+            'defesa', 'iniciativa', 'fadiga', 'tambor', 'pericias',
+            'protecao', 'armaCurtaDado', 'armaCurtaTexto', 'armaLongaDado',
+            'armaLongaTexto', 'corpoACorpoDado', 'corpoACorpoTexto',
+            'equipamentos', 'updatedAt'
+          ])
+        );
+
+      allow delete: if isSignedIn() && isValidId(characterId) && resource != null && existing().ownerId == request.auth.uid;
+    }
+  }
+}
